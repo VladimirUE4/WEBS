@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sensor Data Console</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Consolas', monospace;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0,255,0,0.5);
+        }
+
+        .console-container {
+            background-color: #000000;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0,255,0,0.2);
+        }
+
+        .control-panel {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        select, button {
+            background-color: #000000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 3px;
+            font-family: 'Consolas', monospace;
+            cursor: pointer;
+        }
+
+        select:hover, button:hover {
+            background-color: #003300;
+        }
+
+        button:active {
+            background-color: #006600;
+        }
+
+        .data-container {
+            background-color: #000000;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin-top: 20px;
+            height: 400px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        .data-container p {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #003300;
+        }
+
+        .error {
+            color: #ff0000;
+        }
+
+        .status {
+            color: #00ff00;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        /* Scrollbar styling */
+        .data-container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .data-container::-webkit-scrollbar-track {
+            background: #000000;
+        }
+
+        .data-container::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 5px;
+        }
+
+        label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="console-container">
+        <h1>Sensor Data Console</h1>
+        <div class="control-panel">
+            <label for="subject">Subject:</label>
+            <select id="subject">
+                <option value="1">Subject 1</option>
+                <option value="2">Subject 2</option>
+                <option value="3">Subject 3</option>
+            </select>
+
+            <label for="activity">Activity:</label>
+            <select id="activity">
+                <option value="0">Activity 0</option>
+                <option value="1">Activity 1</option>
+                <option value="2">Activity 2</option>
+                <option value="3">Activity 3</option>
+                <option value="4">Activity 4</option>
+            </select>
+
+            <button onclick="startDaemon()">Initialize Daemon</button>
+            <button onclick="startDataFetch()">Start Capture</button>
+            <button onclick="stopDataFetch()">Stop Capture</button>
+            <button onclick="clearConsole()">Clear Console</button>
+        </div>
+        <div class="status" id="status"></div>
+        <div id="data-container" class="data-container"></div>
+    </div>
+
+    <script>
+        let intervalId = null;
+
+        function startDaemon() {
+            const subject = $('#subject').val();
+            const activity = $('#activity').val();
+            
+            $('#status').text('Initializing daemon...');
+            $.post('/start_daemon', {
+                subject: subject,
+                activity: activity
+            }, function(response) {
+                console.log('Daemon started:', response);
+                $('#status').text(response.message);
+            });
+        }
+
+        function startDataFetch() {
+            if (intervalId) {
+                stopDataFetch();
+            }
+            $('#status').text('Capturing data...');
+            intervalId = setInterval(fetchData, 1000);
+        }
+
+        function stopDataFetch() {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+                $('#status').text('Capture stopped');
+            }
+        }
+
+        function clearConsole() {
+            $('#data-container').empty();
+            $('#status').text('Console cleared');
+        }
+
+        function fetchData() {
+            $.get('/data', function(response) {
+                if (response.error) {
+                    $('#data-container').append('<p class="error">[ERROR] ' + response.error + '</p>');
+                } else {
+                    let timestamp = new Date().toLocaleTimeString();
+                    let dataHtml = `<p>[${timestamp}] ► 
+                        Timestamp: ${response.timestamp || 'N/A'} | 
+                        X: ${response.x || 'N/A'} | 
+                        Y: ${response.y || 'N/A'} | 
+                        Z: ${response.z || 'N/A'}
+                    </p>`;
+                    $('#data-container').append(dataHtml);
+                    
+                    // Auto-scroll to bottom
+                    const container = $('#data-container');
+                    container.scrollTop(container[0].scrollHeight);
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
