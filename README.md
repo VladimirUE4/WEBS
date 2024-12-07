@@ -3,22 +3,6 @@
 ## Description
 Système de visualisation de données de capteurs en temps réel, composé d'un daemon C++ pour la lecture des données et d'une interface web pour la visualisation. Le projet utilise Flask pour le backend et une interface web moderne avec AJAX pour les mises à jour en temps réel.
 
-## Structure du Projet
-project/
-├── daemon/
-│   ├── deamon.cpp      # Programme C++ pour lire les données des capteurs
-│   └── Makefile        # Configuration de compilation
-├── server/
-│   ├── app.py          # Serveur Flask
-│   ├── static/
-│   └── templates/
-│       └── index.html  # Interface web
-└── sensor/
-    ├── data/           # Fichiers de données CSV
-    │   ├── subject1_activity0.csv
-    │   ├── subject1_activity1.csv
-    │   └── ...
-    └── index/          # Fichiers d'index pour le suivi
 
 ## Prérequis
 - Python 3.7+
